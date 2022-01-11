@@ -16,7 +16,7 @@ public class LoadDatabase {
 
     @Bean // These beans will be run every time application context is loaded
         // This one request the CustomerRepository interface to interact with database
-    CommandLineRunner initDatabase(CustomerRepository CustomerRepository){
+    CommandLineRunner initDatabase(CustomerRepository CustomerRepository, ProductRepository Productrepository){
         return args -> {};
     }
 
