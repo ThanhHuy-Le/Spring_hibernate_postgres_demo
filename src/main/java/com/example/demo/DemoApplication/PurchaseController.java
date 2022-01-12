@@ -1,5 +1,9 @@
 package com.example.demo.DemoApplication;
 
+import com.example.demo.DemoApplication.Purchase;
+import com.example.demo.DemoApplication.PurchaseModelAssembler;
+import com.example.demo.DemoApplication.PurchaseNotFoundException;
+import com.example.demo.DemoApplication.PurchaseRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -14,33 +18,34 @@ import java.util.stream.Collectors;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-@RestController // Means data returned by each method will be written straight to response body, instead of rendering template
+@RestController
+// Means data returned by each method will be written straight to response body, instead of rendering template
 @RequestMapping("/api/v1")
-public class CustomerController {
+public class PurchaseController {
 
     @Autowired
-    private CustomerRepository repository; // Inject CustomerRepository
+    private PurchaseRepository repository; // Inject PurchaseRepository
 
-    // After making CustomerModelAssembler.java, we inject it into CustomerController here to save code
+    // After making PurchaseModelAssembler.java, we inject it into PurchaseController here to save code
     //      and streamline code.
-    private final CustomerModelAssembler assembler;
-    public CustomerController(CustomerRepository repository, CustomerModelAssembler assembler) {
+    private final PurchaseModelAssembler assembler;
+    public PurchaseController(PurchaseRepository repository, PurchaseModelAssembler assembler) {
         this.repository = repository;
         this.assembler = assembler;
     }
 
     // CollectionModel<> is another Spring HATEOAS container, a collection of entities, lets us include links
-    // It Encapsulates collections of 'customer' resources, as per REST standard.
+    // It Encapsulates collections of 'Purchase' resources, as per REST standard.
     // Should yield a RESTful representation of the root.
     // more on REST: https://restfulapi.net/
-    @GetMapping("/customer") // GET method for reading
-    CollectionModel<EntityModel<Customer>> getAllCustomers(){
-        List<EntityModel<Customer>> customers = repository.findAll().stream()
+    @GetMapping("/purchase") // GET method for reading
+    CollectionModel<EntityModel<Purchase>> getAllPurchases(){
+        List<EntityModel<Purchase>> purchases = repository.findAll().stream()
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
 
-        return CollectionModel.of(customers ,
-                linkTo(methodOn(CustomerController.class).getAllCustomers()).withSelfRel());
+        return CollectionModel.of(purchases ,
+                linkTo(methodOn(com.example.demo.DemoApplication.PurchaseController.class).getAllPurchases()).withSelfRel());
     }
 
     // https://howtodoinjava.com/spring5/hateoas/spring-hateoas-tutorial/
@@ -60,34 +65,19 @@ public class CustomerController {
     // @ResponseBody is a marker for the HTTP response body and @ResponseStatus declares the status code of the HTTP response.
     // @ResponseStatus isn't very flexible. It marks the entire method so you have to be sure that your handler method will always behave the same way. And you still can't set the headers. You'd need the HttpServletResponse.
     // Basically, ResponseEntity lets you do more.
-    @GetMapping("/customer/{id}") // GET method for reading a customer by id
-    EntityModel<Customer> getCustomerById(@PathVariable Long id){
+    @GetMapping("/purchase/{id}") // GET method for reading a purchase by id
+    EntityModel<Purchase> getPurchaseById(@PathVariable Long id){
 
-        Customer customer = repository.findById(id)
-                .orElseThrow(() -> new CustomerNotFoundException(id));
+        Purchase purchase = repository.findById(id)
+                .orElseThrow(() -> {
+                    return new PurchaseNotFoundException(id);
+                });
 
-        // This adds 2 more links to return, when returning the customer object
-        // A link to itself (/customer/{id})
-        // A link to all customers (/customer)
-        //      Adding links have been delegated to CustomerModelAssembler
-        EntityModel<Customer> found_customer = assembler.toModel(customer);
-        return found_customer;
+        // This adds 2 more links to return, when returning the purchase object
+        // A link to itself (/purchase/{id})
+        // A link to all purchases (/purchase)
+        //      Adding links have been delegated to PurchaseModelAssembler
+        EntityModel<Purchase> found_purchase = assembler.toModel(purchase);
+        return found_purchase;
     }
-
-    /*
-    @GetMapping("/customer/{id}/purchase_history")
-    CollectionModel<EntityModel<Purchase>> getCustomerPurchaseHistory (@PathVariable Long id){
-        // Get customer
-        Customer customer = repository.findById(id)
-                .orElseThrow(() -> new CustomerNotFoundException(id));
-
-        // Search purchases for history
-        List<Purchase> history = PurchaseRepository.findByCustomer_Id(id);
-
-        return history;
-
-    }
-    */
-
-
 }
