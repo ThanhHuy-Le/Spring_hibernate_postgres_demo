@@ -16,6 +16,8 @@ class PurchaseModelAssembler implements RepresentationModelAssembler<Purchase, E
 
         return EntityModel.of(purchase,
                 linkTo(methodOn(PurchaseController.class).getPurchaseById(purchase.getId())).withSelfRel(),
-                linkTo(methodOn(PurchaseController.class).getAllPurchases()).withRel("Purchase"));
+                linkTo(methodOn(PurchaseController.class).getAllPurchases()).withRel("Purchase"),
+                linkTo(methodOn(CustomerController.class).getCustomerById(purchase.getCustomerId())).withRel("Customer"),
+                linkTo(methodOn(ProductController.class).getProductById(purchase.getCustomerId())).withRel("Product"));
     }
 }

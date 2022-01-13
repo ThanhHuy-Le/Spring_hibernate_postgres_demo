@@ -3,6 +3,7 @@ package com.example.demo.DemoApplication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,13 +20,18 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 public class CustomerController {
 
     @Autowired
-    private CustomerRepository repository; // Inject CustomerRepository
+    private CustomerRepository customerRepository; // Inject CustomerRepository
 
+    @Autowired
+    private ProductRepository productRepository; // Inject CustomerRepository
+
+    @Autowired
+    private PurchaseRepository purchaseRepository; // Inject CustomerRepository
     // After making CustomerModelAssembler.java, we inject it into CustomerController here to save code
     //      and streamline code.
     private final CustomerModelAssembler assembler;
-    public CustomerController(CustomerRepository repository, CustomerModelAssembler assembler) {
-        this.repository = repository;
+    public CustomerController(CustomerRepository customerRepository, CustomerModelAssembler assembler) {
+        this.customerRepository = customerRepository;
         this.assembler = assembler;
     }
 
@@ -35,7 +41,7 @@ public class CustomerController {
     // more on REST: https://restfulapi.net/
     @GetMapping("/customer") // GET method for reading
     CollectionModel<EntityModel<Customer>> getAllCustomers(){
-        List<EntityModel<Customer>> customers = repository.findAll().stream()
+        List<EntityModel<Customer>> customers = customerRepository.findAll().stream()
                 .map(assembler::toModel)
                 .collect(Collectors.toList());
 
@@ -63,7 +69,7 @@ public class CustomerController {
     @GetMapping("/customer/{id}") // GET method for reading a customer by id
     EntityModel<Customer> getCustomerById(@PathVariable Long id){
 
-        Customer customer = repository.findById(id)
+        Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
 
         // This adds 2 more links to return, when returning the customer object
@@ -74,20 +80,23 @@ public class CustomerController {
         return found_customer;
     }
 
-    /*
-    @GetMapping("/customer/{id}/purchase_history")
-    CollectionModel<EntityModel<Purchase>> getCustomerPurchaseHistory (@PathVariable Long id){
+
+    @GetMapping("/customer/{id}/purchases")
+    CollectionModel<Purchase> getCustomerPurchases (@PathVariable Long id){
         // Get customer
-        Customer customer = repository.findById(id)
+        Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
 
         // Search purchases for history
-        List<Purchase> history = PurchaseRepository.findByCustomer_Id(id);
+        List<Purchase> raw_history = purchaseRepository.findByCustomerId(id);
 
+        Link link = linkTo(methodOn(CustomerController.class)
+                .getCustomerPurchases(id)).withSelfRel();
+        CollectionModel<Purchase> history = CollectionModel.of(raw_history, link);
         return history;
 
     }
-    */
+
 
 
 }

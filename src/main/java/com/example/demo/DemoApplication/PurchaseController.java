@@ -80,4 +80,6 @@ public class PurchaseController {
         EntityModel<Purchase> found_purchase = assembler.toModel(purchase);
         return found_purchase;
     }
+
+
 }

@@ -16,6 +16,7 @@ class Purchase {
     @GeneratedValue(strategy = GenerationType.AUTO) // Id is automatically generated
     private Long id;
 
+
     @Column(name = "customer_id", nullable = false)
     private Long customerId;
 
@@ -28,10 +29,12 @@ class Purchase {
     @Column(name = "time_purchased", nullable = false)
     private String time;
 
+
+
     // < Getters/setters function>
-    public Long getId()      {return id;}
-    public Long getCustomerId()     {return customerId;}
-    public Long getProductId()      {return productId;}
+    public Long getId()             {return id;}
+    public Long getCustomerId()   {return customerId;}
+    public Long getProduct()        {return productId;}
     public Date getDate()           {return date;}
     public String getTime()         {return time;}
 
